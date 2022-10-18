@@ -1,3 +1,3 @@
-module ISYSE6644/project
+module ISYE6644/project
 
 go 1.18
