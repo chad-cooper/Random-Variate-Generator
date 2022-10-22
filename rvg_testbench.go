@@ -2,6 +2,13 @@ package main
 
 import (
 	"ISYE6644/project/rvg"
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+
+	// "os"
+	"flag"
 )
 
 const (
@@ -9,14 +16,52 @@ const (
 	rvCap = 1000
 )
 
+type parameters []float64
+
 func main() {
 
-	rv := make([]float64, 1000, 1000)
+	pDist := flag.String("dist", "uniform", "The distribution for which to generate RVs")
 
-	for i := 0; i < cap(rv); i++ {
-		rv[i] = rvg.ExponentialGenerator(1.0)
+	pNumRVs := flag.Int("RVs", 1000, "The number of RVs to generate")
+
+	var params parameters
+
+	flag.Var(&params, "params", "The parameters for the chosen distribution")
+
+	flag.Parse()
+
+	println(*pDist)
+	println(*pNumRVs)
+	fmt.Printf("%v\n", params)
+
+	rv := make([]float64, *pNumRVs)
+
+	// :TODO: error check for valid generator
+
+	for i := range rv {
+		rv[i] = rvg.Generators[strings.ToLower(*pDist)](params)
 	}
 
-	rvg.WriteData("exponential_lambda1.csv", rv)
+	rvg.WriteData(fmt.Sprintf("%s_%v.csv", *pDist, params), rv[:])
 
+}
+
+func (p *parameters) String() string {
+	return fmt.Sprintf("%v", *p)
+}
+
+func (p *parameters) Set(paramList string) error {
+	if len(*p) > 0 {
+		return errors.New("Parameter flag already set")
+	}
+
+	for _, param := range strings.Split(paramList, " ") {
+		val, err := strconv.ParseFloat(param, 64)
+		if err != nil {
+			return err
+		}
+
+		*p = append(*p, val)
+	}
+	return nil
 }
