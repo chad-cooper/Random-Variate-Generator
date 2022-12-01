@@ -41,7 +41,7 @@ func main() {
 		return
 	}
 
-	// Set up for multi-threaded generation
+	// Set up for multi-goroutine generation
 	var wg sync.WaitGroup
 
 	wg.Add(len(rv))
@@ -55,6 +55,6 @@ func main() {
 
 	wg.Wait()
 
-	rvg.WriteData(fmt.Sprintf("%s_%v.csv", strings.ToLower(*pDist), params), rv[:])
+	rvg.WriteData(fmt.Sprintf("%s_%v.csv", *pDist, params), rv[:])
 
 }
