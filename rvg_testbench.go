@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 const (
@@ -20,29 +21,40 @@ func main() {
 
 	flag.Parse()
 
-	println(*pDist)
-	println(*pNumRVs)
-	fmt.Printf("%v\n", params)
+	// Lowercase the distribution name
+	*pDist = strings.ToLower(*pDist)
+
+	fmt.Printf("Generating %d RVs for %s(%v) distribution.\n", *pNumRVs, *pDist, params)
 
 	rv := make([]float64, *pNumRVs)
 
-	var err error
-
-	generator, exists := rvg.Generators[strings.ToLower(*pDist)]
+	generator, exists := rvg.Generators[*pDist]
 
 	if !exists {
 		println("The selected distribution is not available.")
 		return
 	}
 
-	for i := range rv {
-		rv[i], err = generator(params)
-		if err != nil {
-			println(err.Error())
-			return
-		}
+	// Validate params
+	if paramsInvalid := rvg.ParamsValidate(params, *pDist); paramsInvalid != nil {
+		println(paramsInvalid.Error())
+		return
 	}
 
-	rvg.WriteData(fmt.Sprintf("%s_%v.csv", *pDist, params), rv[:])
+	// Set up for multi-threaded generation
+	var wg sync.WaitGroup
+
+	wg.Add(len(rv))
+
+	for i := range rv {
+		go func(i int) {
+			defer wg.Done()
+			rv[i], _ = generator(params)
+		}(i)
+	}
+
+	wg.Wait()
+
+	rvg.WriteData(fmt.Sprintf("%s_%v.csv", strings.ToLower(*pDist), params), rv[:])
 
 }

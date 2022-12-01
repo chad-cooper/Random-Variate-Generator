@@ -333,7 +333,55 @@ func TestPoissonGenerator(t *testing.T) {
 			}
 
 			if ans < 0 {
-				t.Errorf("RV should be greater than or euqal to 0, but got RV = %.2f", ans)
+				t.Errorf("RV should be greater than or equal to 0, but got RV = %.2f", ans)
+			}
+
+		})
+	}
+
+}
+
+func TestTriangularGenerator(t *testing.T) {
+
+	var tests = []struct {
+		params  Parameters
+		wantErr error
+	}{
+		// Standard cases
+		{Parameters{0, 2, 1}, nil},
+		{Parameters{-1, 1, 0}, nil},
+		{Parameters{1, 5, 3}, nil},
+		{Parameters{-10, -1, -5}, nil},
+
+		// Invalid parameter cases
+		{Parameters{0, -2, 1}, &InvalidParametersError{}},
+		{Parameters{0, 2, -1}, &InvalidParametersError{}},
+		// Incorrect number of parameters cases
+		{Parameters{}, &NumberOfParametersError{}},
+		{Parameters{0}, &NumberOfParametersError{}},
+		{Parameters{0, 2}, &NumberOfParametersError{}},
+		{Parameters{0, 2, 1, 0.5}, &NumberOfParametersError{}},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("Triangular{%v}", &tt.params)
+		t.Run(testname, func(t *testing.T) {
+			ans, err := TriangularGenerator(tt.params)
+
+			errType := fmt.Sprintf("%T", err)
+			wantErrType := fmt.Sprintf("%T", tt.wantErr)
+
+			if errType != wantErrType {
+				t.Errorf("Got %T, wanted %T", err, tt.wantErr)
+			}
+
+			if err != nil {
+				println(err.Error())
+				return
+			}
+
+			if ans < tt.params[0] || ans > tt.params[1] {
+				t.Errorf("RV should be between %.2f and %.2f, but got RV = %.2f", tt.params[0], tt.params[1], ans)
 			}
 
 		})

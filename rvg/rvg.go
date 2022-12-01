@@ -31,6 +31,7 @@ var Generators = map[string]RVGenerator{
 	"geometric":   GeometricGenerator,
 	"normal":      NormalGenerator,
 	"poisson":     PoissonGenerator,
+	"triangular":  TriangularGenerator,
 	"weibull":     WeibullGenerator,
 }
 
@@ -39,10 +40,9 @@ var Generators = map[string]RVGenerator{
 
    The generator function was calculated based on the Bernoulli pmf.
 */
-// func BernoulliGenerator(p float64) float64 {
 func BernoulliGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "bernoulli"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "bernoulli"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -60,7 +60,7 @@ func BernoulliGenerator(params Parameters) (float64, error) {
 // func BinomialGenerator(p float64, n int) float64 {
 func BinomialGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "binomial"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "binomial"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -86,7 +86,7 @@ func BinomialGenerator(params Parameters) (float64, error) {
 */
 func ExponentialGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "exponential"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "exponential"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -101,7 +101,7 @@ func ExponentialGenerator(params Parameters) (float64, error) {
 for implementation */
 func GammaGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "gamma"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "gamma"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -147,7 +147,7 @@ func GammaGenerator(params Parameters) (float64, error) {
 */
 func GeometricGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "geometric"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "geometric"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -166,7 +166,7 @@ func GeometricGenerator(params Parameters) (float64, error) {
 // func NormalGenerator(mu, sigma float64) (float64, float64) {
 func NormalGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "normal"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "normal"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -195,7 +195,7 @@ func StdNormalGenerator() float64 {
 /* See http://www.columbia.edu/~ks20/4404-Sigman/4404-Notes-ITM.pdf*/
 func PoissonGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "poisson"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "poisson"); paramsErr != nil {
 		return 0, paramsErr
 	}
 
@@ -212,9 +212,33 @@ func PoissonGenerator(params Parameters) (float64, error) {
 	return x, nil
 }
 
+/* Triangular Generator returns a random variate from the Triangular(a,b,c) distribution
+   where a is the minimum, b is the maximum, and c is the mode.
+
+   The inverse CDF comes from http://www.math.wm.edu/~leemis/chart/UDR/PDFs/TriangularV.pdf
+*/
+func TriangularGenerator(params Parameters) (float64, error) {
+	if paramsErr := ParamsValidate(params, "triangular"); paramsErr != nil {
+		return 0, paramsErr
+	}
+
+	a := params[0]
+	b := params[1]
+	c := params[2]
+
+	U := rand.Float64()
+
+	if U < (c-a)/(b-a) {
+		return a + math.Sqrt((b-a)*(c-a)*U), nil
+	} else {
+		return b - math.Sqrt((b-a)*(b-c)*(1-U)), nil
+	}
+
+}
+
 func WeibullGenerator(params Parameters) (float64, error) {
 
-	if paramsErr := paramsValidate(params, "weibull"); paramsErr != nil {
+	if paramsErr := ParamsValidate(params, "weibull"); paramsErr != nil {
 		return 0, paramsErr
 	}
 

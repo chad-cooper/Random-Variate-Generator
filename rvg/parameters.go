@@ -151,6 +151,15 @@ var DistDetails = map[string]Distribution{
 			return params[0] > 0
 		},
 	},
+	"triangular": {
+		name:         "Triangular",
+		numParams:    3,
+		paramSymbols: []string{"a", "b", "c"},
+		paramBounds:  []string{"a ∈ (-∞, ∞)", "a < b", "a ≤ c ≤ b"},
+		validBounds: func(params Parameters) bool {
+			return (params[0] < params[1]) && ((params[0] <= params[2]) && (params[2] <= params[1]))
+		},
+	},
 	"weibull": {
 		name:         "Weibull",
 		numParams:    2,
@@ -162,7 +171,7 @@ var DistDetails = map[string]Distribution{
 	},
 }
 
-func paramsValidate(params Parameters, distName string) error {
+func ParamsValidate(params Parameters, distName string) error {
 
 	dist := DistDetails[distName]
 
